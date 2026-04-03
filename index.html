@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ANCIENT SMP</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+    <style>
+        /* PALET WARNA SESUAI GAMBAR REFERENSI */
+        :root {
+            --bg-body: #080C14;       /* Biru sangat gelap (Background) */
+            --bg-panel: #1D2432;      /* Biru dongker (Panel) */
+            --bg-box: #131924;        /* Biru lebih gelap (Kotak IP) */
+            --border-color: #0F141E;  /* Warna garis tepi */
+            --text-gold: #FFB800;     /* Emas */
+            --text-cyan: #4DEEEA;     /* Cyan untuk IP */
+            --text-green: #4ADE80;    /* Hijau Online */
+            --text-gray: #8892A0;     /* Abu-abu teks bawah */
+            --btn-green: #3A7D2C;     /* Hijau tombol Copy */
+            --mc-gui-btn: #A0A0A0;    /* Abu-abu tombol GUI Minecraft */
+        }
+
+        /* RESET & BASE - SANGAT RINGAN */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'VT323', monospace;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: #FFFFFF;
+            font-size: 1.2rem;
+            min-height: 100vh;
+            overflow: hidden; /* Dikunci saat loading */
+        }
+
+        /* --- HALAMAN LOADING (SPLASH SCREEN) --- */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+
+        .loading-text {
+            font-size: 2rem;
+            color: var(--text-gold);
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0 #000;
+            letter-spacing: 2px;
+        }
+
+        /* Progress Bar Minecraft Style */
+        .progress-container {
+            width: 80%;
+            max-width: 400px;
+            height: 20px;
+            background-color: #333;
+            border: 2px solid #000;
+            padding: 2px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--text-green);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Tombol Masuk ala Minecraft GUI */
+        #enter-btn {
+            display: none; /* Sembunyi sampai loading selesai */
+            background-color: #666;
+            color: #FFF;
+            border: 3px solid #000;
+            padding: 10px 30px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-shadow: 2px 2px 0 #000;
+            box-shadow: inset 2px 2px 0 #999, inset -2px -2px 0 #333;
+            margin-top: 20px;
+        }
+        #enter-btn:hover {
+            background-color: #777;
+            border-color: #FFF;
+        }
+        #enter-btn:active {
+            box-shadow: inset 2px 2px 0 #333, inset -2px -2px 0 #999;
+        }
+
+        /* --- KONTEN UTAMA WEBSITE --- */
+        #main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 15px;
+            visibility: hidden; /* Sembunyi saat loading */
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Pola Grid Tipis seperti di gambar */
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 25px 25px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* LOGO STYLING */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .server-logo {
+            max-width: 150px; /* Atur ukuran logo di sini */
+            height: auto;
+            display: inline-block;
+        }
+
+        /* HEADER */
+        .title {
+            text-align: center;
+            font-size: 3rem;
+            color: var(--text-gold);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .status-box {
+            display: table;
+            margin: 0 auto 20px auto;
+            background-color: #000000;
+            padding: 5px 15px;
+            border: 1px solid #222;
+            color: var(--text-green);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        /* PANEL KOTAK */
+        .panel {
+            background-color: var(--bg-panel);
+            border: 2px solid var(--border-color);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* ELEMEN TEKS & ICON KOTAK */
+        .panel-title {
+            color: var(--text-gold);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #2A3446;
+            padding-bottom: 10px;
+        }
+
+        .label {
+            color: var(--text-gold);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Kotak Kecil (Pixel Icon) Pengganti Emoji */
+        .sq {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-right: 10px;
+        }
+        .sq-cyan { background-color: var(--text-cyan); }
+        .sq-gold { background-color: var(--text-gold); }
+        .sq-green { background-color: var(--text-green); }
+
+        /* KOTAK DALAM (IP TEXT) */
+        .ip-box {
+            background-color: var(--bg-box);
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .ip-text {
+            color: var(--text-cyan);
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
+
+        /* TOMBOL COPY */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .copy-btn {
+            background-color: var(--btn-green);
+            color: #FFFFFF;
+            border: 2px solid #000000;
+            padding: 8px 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            box-shadow: inset 2px 2px 0 rgba(255,255,255,0.2), inset -2px -2px 0 rgba(0,0,0,0.3);
+        }
+
+        .copy-btn:active {
+            box-shadow: inset 2px 2px 0 rgba(0,0,0,0.5);
+            background-color: #2F6622;
+        }
+
+        /* Tombol Komunitas */
+        .com-btn {
+            border: 2px solid #000000;
+            padding: 8px 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-decoration: none;
+            color: #FFF;
+            text-shadow: 2px 2px 0 #000;
+            box-shadow: inset 2px 2px 0 rgba(255,255,255,0.2), inset -2px -2px 0 rgba(0,0,0,0.3);
+        }
+
+        /* INFO & RULES LIST */
+        ul {
+            list-style: none;
+            padding-left: 5px;
+        }
+        ul li {
+            margin-bottom: 8px;
+            display: flex;
+        }
+        ul li::before {
+            content: "■";
+            color: var(--text-gray);
+            font-size: 0.8rem;
+            margin-right: 10px;
+            margin-top: 2px;
+        }
+
+        .footer-text {
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        /* NOTIFIKASI TOAST */
+        #toast {
+            visibility: hidden;
+            background-color: #000;
+            color: var(--text-green);
+            text-align: center;
+            padding: 12px 20px;
+            position: fixed;
+            z-index: 10000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            border: 2px solid var(--text-green);
+            font-size: 1.2rem;
+        }
+        #toast.show { visibility: visible; }
+
+        /* DEV TAG */
+        .dev-tag {
+            text-align: center;
+            color: var(--text-gray);
+            margin-top: 30px;
+            letter-spacing: 2px;
+            padding-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="mc-music" loop>
+        <source src="https://minecraft.wiki/w/Media:Calm1.ogg" type="audio/ogg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div id="loading-screen">
+        <div class="loading-text">MEMUAT DATA SERVER...</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="myBar"></div>
+        </div>
+        <button id="enter-btn" onclick="enterWebsite()">MASUK SERVER</button>
+    </div>
+
+    <div id="main-content" class="grid-bg">
+        <div class="container">
+            
+            <div class="logo-container">
+                <img src="logo.png" alt="Ancient SMP Logo" class="server-logo">
+            </div>
+
+            <h1 class="title">ANCIENT SMP</h1>
+            <div class="status-box">
+                <span class="sq sq-green"></span> STATUS SERVER ON
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="sq sq-cyan"></span> LINK MINECRAFT
+                </div>
+
+                <div class="label"><span class="sq sq-gold"></span> Android / Bedrock:</div>
+                <div class="ip-box">
+                    <div class="ip-text">IP: furina.nexuscloud.id</div>
+                    <div class="ip-text">Port: 25556</div>
+                    <div class="btn-group">
+                        <button class="copy-btn" onclick="copyToClipboard('furina.nexuscloud.id', 'IP Bedrock')">COPY IP</button>
+                        <button class="copy-btn" onclick="copyToClipboard('25556', 'Port Bedrock')">COPY PORT</button>
+                    </div>
+                </div>
+
+                <div class="label"><span class="sq sq-gold"></span> Java Edition:</div>
+                <div class="ip-box">
+                    <div class="ip-text">IP: furina.nexuscloud.id:25556</div>
+                    <div class="btn-group">
+                        <button class="copy-btn" onclick="copyToClipboard('furina.nexuscloud.id:25556', 'IP Java')">COPY IP</button>
+                    </div>
+                </div>
+
+                <div class="footer-text">Resource Pack: Lasten update Official</div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="sq sq-cyan"></span> INFO SERVER
+                </div>
+                <ul>
+                    <li>Survival Only</li>
+                    <li>Hard Mode</li>
+                    <li>Koordinat ON</li>
+                    <li>Online 24/7 Jam</li>
+                    <li>NPC Shop</li>
+                </ul>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title" style="color: #FF5555;">
+                    <span class="sq" style="background-color: #FF5555;"></span> RULES ANCIENT SMP
+                </div>
+                <ul>
+                    <li>Dilarang Sarkas & Sara</li>
+                    <li>Dilarang Memakai P3 (Misal Tolbox, Xray, Gameguadian, Dll.)</li>
+                    <li>Dilarang Melakukan Trx Secara Sepihak</li>
+                    <li style="color: #FF5555;">Dilarang Sharelink Grub Lain Atau Promosi Grub Sebelah. (AUTO BAN)</li>
+                    <li>Dilarang Speedruner dalam waktu dekat.</li>
+                    <li>Dilarang Killing Player di tempat spawn/Dirumah</li>
+                </ul>
+                <div class="footer-text" style="color: var(--text-gold); margin-top: 15px;">
+                    Melanggar? Hubungi Admin sertakan Screenshot.
+                </div>
+            </div>
+
+            <div class="panel" style="text-align: center;">
+                <div class="label" style="justify-content: center;"><span class="sq sq-gold"></span> GABUNG KOMUNITAS</div>
+                <div class="btn-group" style="justify-content: center; margin-top: 10px;">
+                    <a href="https://chat.whatsapp.com/GPAw5P5AvFY9DgdRXNNYDU" target="_blank" class="com-btn" style="background-color: var(--btn-green);">WHATSAPP</a>
+                    <a href="https://discord.com/invite/NTrwaTj6Er" target="_blank" class="com-btn" style="background-color: #4A5BAA;">DISCORD</a>
+                </div>
+                <div class="footer-text" style="margin-top: 20px; color: var(--text-green);">
+                    Gtag Admin: • CakeWeee | • Pocong9
+                </div>
+            </div>
+
+            <div class="dev-tag">[ DEV JHON338 ]</div>
+        </div>
+    </div>
+
+    <div id="toast">Berhasil disalin!</div>
+
+    <script>
+        // --- SCRIPT LOADING BAR ---
+        function move() {
+            var elem = document.getElementById("myBar");
+            var width = 0;
+            var id = setInterval(frame, 20); // Kecepatan loading
+            function frame() {
+                if (width >= 100) {
+                    clearInterval(id);
+                    // Loading selesai, munculkan tombol masuk
+                    document.getElementById("enter-btn").style.display = "block";
+                    document.querySelector(".progress-container").style.display = "none";
+                } else {
+                    width++;
+                    elem.style.width = width + '%';
+                }
+            }
+        }
+        // Jalankan loading saat window dimuat
+        window.onload = move;
+
+        // --- SCRIPT MASUK WEBSITE & NYALAKAN MUSIK ---
+        function enterWebsite() {
+            // 1. Sembunyikan Layar Loading
+            var loader = document.getElementById("loading-screen");
+            loader.style.opacity = "0";
+            loader.style.visibility = "hidden";
+
+            // 2. Tampilkan Konten Utama
+            var content = document.getElementById("main-content");
+            content.style.visibility = "visible";
+            content.style.opacity = "1";
+            
+            // Aktifkan scroll
+            document.body.style.overflow = "auto";
+
+            // 3. Mainkan Musik
+            var music = document.getElementById("mc-music");
+            music.volume = 0.2; // Atur volume (0.0 sampai 1.0)
+            music.play().catch(function(error) {
+                // Autoplay mungkin diblokir browser jika belum ada interaksi
+                console.log("Autoplay musik diblokir. Butuh interaksi user.");
+            });
+        }
+
+        // --- SCRIPT COPY CLIPBOARD ---
+        function copyToClipboard(text, type) {
+            var tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            
+            showToast(type + " Disalin!");
+        }
+
+        function showToast(msg) {
+            var toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 2500);
+        }
+    </script>
+</body>
+</html>
